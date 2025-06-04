@@ -1,0 +1,14 @@
+{
+  "name": "my-firebase-app",
+  "version": "1.0.0",
+  "description": "Instagram/YouTube URL管理アプリ",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "firebase": "^11.8.0"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "parcel": "^2.15.2"
+  }
+}
