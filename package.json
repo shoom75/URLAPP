@@ -4,6 +4,7 @@
   "description": "Instagram/YouTube URL管理アプリ",
   "type": "module",
   "dependencies": {
+    "@parcel/source-map": "^2.1.1",
     "@supabase/supabase-js": "^2.49.8",
     "firebase": "^11.8.0",
     "next": "^15.3.3"
@@ -12,12 +13,8 @@
     "buffer": "^6.0.3",
     "parcel": "^2.15.2"
   },
-"scripts": {
-  "postinstall": "chmod +x node_modules/.bin/parcel",
-  "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
-}
-
-
-
-
+  "scripts": {
+    "postinstall": "chmod +x node_modules/.bin/parcel",
+    "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
+  }
 }
