@@ -15,9 +15,6 @@
   },
   "scripts": {
     "postinstall": "chmod +x node_modules/.bin/parcel",
-
-  "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
-}
-
-
+    "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
+  }
 }
