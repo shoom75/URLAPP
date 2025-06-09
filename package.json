@@ -14,7 +14,8 @@
   },
 "scripts": {
   "start": "parcel src/public/index.html",
-   "build": "parcel build src/public/index.html --dist-dir dist --no-cache"
+   "build": "sh -c 'parcel build src/public/index.html --dist-dir dist'"
+
 }
 
 }
