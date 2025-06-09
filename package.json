@@ -5,10 +5,16 @@
   "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
-    "firebase": "^11.8.0"
+    "firebase": "^11.8.0",
+    "next": "^15.3.3"
   },
   "devDependencies": {
     "buffer": "^6.0.3",
     "parcel": "^2.15.2"
-  }
+  },
+"scripts": {
+  "start": "parcel src/public/index.html",
+   "build": "parcel build src/public/index.html --dist-dir dist --no-cache"
+}
+
 }
