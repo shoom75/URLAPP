@@ -160,7 +160,7 @@
       });
     }
   }
-})({"1nWVY":[function(require,module,exports,__globalThis) {
+})({"bjoAJ":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
@@ -672,6 +672,6 @@ module.exports = function() {
     throw new Error("ws does not work in the browser. Browser clients must use the native WebSocket object");
 };
 
-},{}]},["1nWVY"], null, "parcelRequire893f", {})
+},{}]},["bjoAJ"], null, "parcelRequire893f", {})
 
 //# sourceMappingURL=browser.56cbbe2e.js.map
