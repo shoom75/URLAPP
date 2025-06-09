@@ -1,6 +1,6 @@
 import { addUrl, fetchUrls } from "./utils/dbOperations.js";
 import { getPreview } from "./utils/fetchPreview.js";
-
+// move?
 document.addEventListener("DOMContentLoaded", async () => {
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
