@@ -14,8 +14,8 @@
     "parcel": "^2.15.2"
   },
   "scripts": {
-  "postinstall": "icacls node_modules\\.bin\\parcel /grant Everyone:F",
   "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
 }
+
 
 }
