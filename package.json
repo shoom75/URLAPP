@@ -5,16 +5,17 @@
   "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
+    "express": "^5.1.0",
     "firebase": "^11.8.0",
-    "next": "^15.3.3"
+    "next": "^15.3.3",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "buffer": "^6.0.3",
     "parcel": "^2.15.2"
   },
   "scripts": {
-  "postinstall": "npm rebuild parcel",
-  "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
-}
-
+    "postinstall": "npm rebuild parcel",
+    "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
+  }
 }

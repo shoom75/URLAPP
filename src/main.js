@@ -1,59 +1,110 @@
-import { addUrl, fetchUrls } from "./utils/dbOperations.js";
+import { addUrl, fetchUrls, deleteUrl } from "./utils/dbOperations.js";
 import { getPreview } from "./utils/fetchPreview.js";
-// mo
+import { supabase } from "./utils/supabaseClient.js";
+
+console.log("✅ main.js loaded");
+
 document.addEventListener("DOMContentLoaded", async () => {
-    const urlForm = document.getElementById("urlForm");
-    const urlList = document.getElementById("urlList");
-    const thumbnailPreview = document.getElementById("thumbnail");
+  // 認証ユーザー取得（仮に未ログインならテスト用ID）
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-    async function loadUrls() {
-        urlList.innerHTML = "";
-        const urls = await fetchUrls();
+  const userId = session?.user?.id || "user_123";
 
-        const fragment = document.createDocumentFragment();
-        urls.forEach(({ url, title, thumbnail_url }) => {
-            const li = document.createElement("li");
+  const urlForm = document.getElementById("urlForm");
+  const urlList = document.getElementById("urlList");
+  const thumbnailPreview = document.getElementById("thumbnail");
 
-            const img = document.createElement("img");
-            img.src = thumbnail_url || "https://placehold.co/100x100";  // ✅ 画像URLをセット
-            img.width = 100;
-            img.alt = "サムネイル";
+  async function loadUrls() {
+    console.log("▶️ loadUrls called");
+    urlList.innerHTML = "";
+    const urls = await fetchUrls();
 
-            const link = document.createElement("a");
-            link.href = url;
-            link.target = "_blank";
-            link.innerText = title;
+    const fragment = document.createDocumentFragment();
+    urls.forEach(({ id, url, title, thumbnail_url }) => {
+      const li = document.createElement("li");
+      li.style.display = "flex";
+      li.style.alignItems = "center";
+      li.style.gap = "12px";
+      li.style.margin = "10px 0";
 
-            li.appendChild(img);
-            li.appendChild(link);
-            fragment.appendChild(li);
-        });
+      // 画像
+      const img = document.createElement("img");
+      const proxiedUrl = thumbnail_url
+        ? `http://localhost:3001/proxy?url=${encodeURIComponent(thumbnail_url)}`
+        : "https://placehold.co/80x80";
 
-        urlList.appendChild(fragment);
-    }
+      img.src = proxiedUrl;
+      img.width = 80;
+      img.height = 80;
+      img.alt = "サムネイル";
+      img.style.objectFit = "cover";
+      img.onerror = () => { img.src = "https://placehold.co/80x80"; };
 
-    urlForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+      // タイトルリンク
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.innerText = title;
+      link.style.flex = "1";
+      link.style.fontWeight = "bold";
+      link.style.fontSize = "16px";
+      link.style.color = "#E76F51";
+      link.style.textDecoration = "none";
 
-        const url = document.getElementById("urlInput").value.trim();
-        const title = document.getElementById("titleInput").value.trim();
-        const category = document.getElementById("categoryInput").value.trim();
+      // 削除ボタン
+      const btnDelete = document.createElement("button");
+      btnDelete.innerText = "削除";
+      btnDelete.style.marginLeft = "auto";
+      btnDelete.style.border = "none";
+      btnDelete.style.background = "#f8d7da";
+      btnDelete.style.color = "#721c24";
+      btnDelete.style.padding = "6px 10px";
+      btnDelete.style.borderRadius = "4px";
+      btnDelete.style.cursor = "pointer";
+      btnDelete.style.fontSize = "14px";
 
-        if (!url || !title || !category) {
-            console.error("入力が不足しています");
-            return;
+      btnDelete.onclick = async () => {
+        if (!confirm(`「${title}」を削除しますか？`)) return;
+
+        const { success, error } = await deleteUrl(id);
+        if (success) {
+          loadUrls();
+        } else {
+          alert("削除に失敗しました");
+          console.error(error);
         }
+      };
 
-        // ✅ API から画像URLを取得
-        const imageUrl = await getPreview(url);
-
-        // ✅ Supabase に URL + 画像URL を保存
-        const userId = "user_123";
-        await addUrl(url, title, category, userId, imageUrl);
-
-        thumbnailPreview.src = imageUrl;  // ✅ 画像プレビューを即時更新
-        loadUrls();  // ✅ ページリストを更新
+      // 並び順：画像 → タイトルリンク → 削除ボタン
+      li.appendChild(img);
+      li.appendChild(link);
+      li.appendChild(btnDelete);
+      fragment.appendChild(li);
     });
 
+    urlList.appendChild(fragment);
+  }
+
+  urlForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const url = urlForm.urlInput.value.trim();
+    const title = urlForm.titleInput.value.trim();
+    const category = urlForm.categoryInput.value.trim();
+    if (!url || !title || !category) return;
+
+    const imageUrl = await getPreview(url);
+    await addUrl(url, title, category, userId, imageUrl);
+
+    // プレビュー
+    const proxiedImageUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
+    thumbnailPreview.src = proxiedImageUrl;
+    thumbnailPreview.onerror = () => { thumbnailPreview.src = "https://placehold.co/300x200"; };
+
+    urlForm.reset();
     loadUrls();
+  });
+
+  loadUrls();
 });

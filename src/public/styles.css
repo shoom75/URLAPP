@@ -6,6 +6,10 @@ body {
     margin: 0;
     padding: 40px;
 }
+#thumbnail {
+  display: none;
+  margin-top: 20px;
+}
 
 /* 📄 フォーム */
 form {

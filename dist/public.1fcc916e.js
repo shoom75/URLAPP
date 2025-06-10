@@ -160,7 +160,7 @@
       });
     }
   }
-})({"kc49x":[function(require,module,exports,__globalThis) {
+})({"iUuJv":[function(require,module,exports,__globalThis) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
@@ -669,74 +669,132 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 },{}],"fILKw":[function(require,module,exports,__globalThis) {
 var _dbOperationsJs = require("./utils/dbOperations.js");
 var _fetchPreviewJs = require("./utils/fetchPreview.js");
+var _supabaseClientJs = require("./utils/supabaseClient.js");
+console.log("\u2705 main.js loaded");
 document.addEventListener("DOMContentLoaded", async ()=>{
+    // 認証ユーザー取得（仮に未ログインならテスト用ID）
+    const { data: { session } } = await (0, _supabaseClientJs.supabase).auth.getSession();
+    const userId = session?.user?.id || "user_123";
     const urlForm = document.getElementById("urlForm");
     const urlList = document.getElementById("urlList");
     const thumbnailPreview = document.getElementById("thumbnail");
     async function loadUrls() {
+        console.log("\u25B6\uFE0F loadUrls called");
         urlList.innerHTML = "";
         const urls = await (0, _dbOperationsJs.fetchUrls)();
         const fragment = document.createDocumentFragment();
-        urls.forEach(({ url, title, thumbnail_url })=>{
+        urls.forEach(({ id, url, title, thumbnail_url })=>{
             const li = document.createElement("li");
+            li.style.display = "flex";
+            li.style.alignItems = "center";
+            li.style.gap = "12px";
+            li.style.margin = "10px 0";
+            // 画像
             const img = document.createElement("img");
-            img.src = thumbnail_url || "https://placehold.co/100x100"; // ✅ 画像URLをセット
-            img.width = 100;
+            const proxiedUrl = thumbnail_url ? `http://localhost:3001/proxy?url=${encodeURIComponent(thumbnail_url)}` : "https://placehold.co/80x80";
+            img.src = proxiedUrl;
+            img.width = 80;
+            img.height = 80;
             img.alt = "\u30B5\u30E0\u30CD\u30A4\u30EB";
+            img.style.objectFit = "cover";
+            img.onerror = ()=>{
+                img.src = "https://placehold.co/80x80";
+            };
+            // タイトルリンク
             const link = document.createElement("a");
             link.href = url;
             link.target = "_blank";
             link.innerText = title;
+            link.style.flex = "1";
+            link.style.fontWeight = "bold";
+            link.style.fontSize = "16px";
+            link.style.color = "#E76F51";
+            link.style.textDecoration = "none";
+            // 削除ボタン
+            const btnDelete = document.createElement("button");
+            btnDelete.innerText = "\u524A\u9664";
+            btnDelete.style.marginLeft = "auto";
+            btnDelete.style.border = "none";
+            btnDelete.style.background = "#f8d7da";
+            btnDelete.style.color = "#721c24";
+            btnDelete.style.padding = "6px 10px";
+            btnDelete.style.borderRadius = "4px";
+            btnDelete.style.cursor = "pointer";
+            btnDelete.style.fontSize = "14px";
+            btnDelete.onclick = async ()=>{
+                if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
+                const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
+                if (success) loadUrls();
+                else {
+                    alert("\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F");
+                    console.error(error);
+                }
+            };
+            // 並び順：画像 → タイトルリンク → 削除ボタン
             li.appendChild(img);
             li.appendChild(link);
+            li.appendChild(btnDelete);
             fragment.appendChild(li);
         });
         urlList.appendChild(fragment);
     }
     urlForm.addEventListener("submit", async (event)=>{
         event.preventDefault();
-        const url = document.getElementById("urlInput").value.trim();
-        const title = document.getElementById("titleInput").value.trim();
-        const category = document.getElementById("categoryInput").value.trim();
-        if (!url || !title || !category) {
-            console.error("\u5165\u529B\u304C\u4E0D\u8DB3\u3057\u3066\u3044\u307E\u3059");
-            return;
-        }
-        // ✅ API から画像URLを取得
+        const url = urlForm.urlInput.value.trim();
+        const title = urlForm.titleInput.value.trim();
+        const category = urlForm.categoryInput.value.trim();
+        if (!url || !title || !category) return;
         const imageUrl = await (0, _fetchPreviewJs.getPreview)(url);
-        // ✅ Supabase に URL + 画像URL を保存
-        const userId = "user_123";
         await (0, _dbOperationsJs.addUrl)(url, title, category, userId, imageUrl);
-        thumbnailPreview.src = imageUrl; // ✅ 画像プレビューを即時更新
-        loadUrls(); // ✅ ページリストを更新
+        // プレビュー
+        const proxiedImageUrl = `http://localhost:3001/proxy?url=${encodeURIComponent(imageUrl)}`;
+        thumbnailPreview.src = proxiedImageUrl;
+        thumbnailPreview.onerror = ()=>{
+            thumbnailPreview.src = "https://placehold.co/300x200";
+        };
+        urlForm.reset();
+        loadUrls();
     });
     loadUrls();
 });
 
-},{"./utils/dbOperations.js":"bzNyS","./utils/fetchPreview.js":"bMlgX"}],"bzNyS":[function(require,module,exports,__globalThis) {
+},{"./utils/dbOperations.js":"bzNyS","./utils/fetchPreview.js":"bMlgX","./utils/supabaseClient.js":"e1e2Y"}],"bzNyS":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
- * URLと画像URLを Supabase に保存する
- * @param {string} url - 登録するURL
- * @param {string} title - 表示用タイトル
- * @param {string} category - カテゴリ情報
- * @param {string} userId - ユーザーID
- * @param {string} imageUrl - APIから取得した画像URL
+ * URLとサムネイルURLを Supabase に保存する
  */ parcelHelpers.export(exports, "addUrl", ()=>addUrl);
 /**
  * Supabase の "urls" テーブルからデータを取得する関数
  */ parcelHelpers.export(exports, "fetchUrls", ()=>fetchUrls);
-var _supabaseClient = require("./supabaseClient");
+/**
+ * 指定されたIDのURLを Supabase から削除する
+ */ parcelHelpers.export(exports, "deleteUrl", ()=>deleteUrl);
+var _supabaseClientJs = require("./supabaseClient.js");
 async function addUrl(url, title, category, userId, imageUrl) {
-    const { data, error } = await (0, _supabaseClient.supabase).from("urls").select("*").order("created_at", {
-        ascending: false
-    });
-    if (error) console.error("Supabase fetch error:", error);
-    else console.log("\u53D6\u5F97\u6210\u529F:", data);
+    const { data, error } = await (0, _supabaseClientJs.supabase).from("urls").insert([
+        {
+            url,
+            title,
+            category,
+            user_id: userId,
+            thumbnail_url: imageUrl
+        }
+    ]);
+    if (error) {
+        console.error("Supabase insert error:", error);
+        return {
+            success: false,
+            error
+        };
+    }
+    return {
+        success: true,
+        data
+    };
 }
 async function fetchUrls() {
-    const { data, error } = await (0, _supabaseClient.supabase).from("urls").select("*").order("created_at", {
+    const { data, error } = await (0, _supabaseClientJs.supabase).from("urls").select("id, url, title, category, user_id, thumbnail_url, visited, created_at").order("created_at", {
         ascending: false
     });
     if (error) {
@@ -745,8 +803,52 @@ async function fetchUrls() {
     }
     return data;
 }
+async function deleteUrl(id) {
+    const { data, error } = await (0, _supabaseClientJs.supabase).from("urls").delete().eq("id", id);
+    if (error) {
+        console.error("Supabase delete error:", error);
+        return {
+            success: false,
+            error
+        };
+    }
+    return {
+        success: true,
+        data
+    };
+}
 
-},{"./supabaseClient":"e1e2Y","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"e1e2Y":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","./supabaseClient.js":"e1e2Y"}],"jnFvT":[function(require,module,exports,__globalThis) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, '__esModule', {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"e1e2Y":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "supabase", ()=>supabase);
@@ -1156,37 +1258,7 @@ const resolveFetch = (customFetch)=>{
 },{"db8a7a5aa4509164":"krM5B","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"krM5B":[function(require,module,exports,__globalThis) {
 module.exports = Promise.resolve(module.bundle.root("eMBzZ"));
 
-},{"eMBzZ":"eMBzZ"}],"jnFvT":[function(require,module,exports,__globalThis) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, '__esModule', {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"2u4bB":[function(require,module,exports,__globalThis) {
+},{"eMBzZ":"eMBzZ"}],"2u4bB":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "FunctionsError", ()=>FunctionsError);
@@ -2454,6 +2526,8 @@ var _realtimePresenceDefault = parcelHelpers.interopDefault(_realtimePresence);
 },{"./RealtimeClient":"kdCgs","./RealtimeChannel":"cvNTv","./RealtimePresence":"ar9z5","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"kdCgs":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
+var _webSocket = require("./WebSocket");
+var _webSocketDefault = parcelHelpers.interopDefault(_webSocket);
 var _constants = require("./lib/constants");
 var _serializer = require("./lib/serializer");
 var _serializerDefault = parcelHelpers.interopDefault(_serializer);
@@ -2463,7 +2537,6 @@ var _transformers = require("./lib/transformers");
 var _realtimeChannel = require("./RealtimeChannel");
 var _realtimeChannelDefault = parcelHelpers.interopDefault(_realtimeChannel);
 const noop = ()=>{};
-const NATIVE_WEBSOCKET_AVAILABLE = typeof WebSocket !== 'undefined';
 const WORKER_SCRIPT = `
   addEventListener("message", (e) => {
     if (e.data.event === "start") {
@@ -2476,12 +2549,13 @@ class RealtimeClient {
      *
      * @param endPoint The string WebSocket endpoint, ie, "ws://example.com/socket", "wss://example.com", "/socket" (inherited host & protocol)
      * @param httpEndpoint The string HTTP endpoint, ie, "https://example.com", "/" (inherited host & protocol)
-     * @param options.transport The Websocket Transport, for example WebSocket.
+     * @param options.transport The Websocket Transport, for example WebSocket. This can be a custom implementation
      * @param options.timeout The default timeout in milliseconds to trigger push timeouts.
      * @param options.params The optional params to pass when connecting.
      * @param options.headers The optional headers to pass when connecting.
      * @param options.heartbeatIntervalMs The millisec interval to send a heartbeat message.
      * @param options.logger The optional function for specialized logging, ie: logger: (kind, msg, data) => { console.log(`${kind}: ${msg}`, data) }
+     * @param options.logLevel Sets the log level for Realtime
      * @param options.encode The function to encode outgoing messages. Defaults to JSON: (payload, callback) => callback(JSON.stringify(payload))
      * @param options.decode The function to decode incoming messages. Defaults to Serializer's decode.
      * @param options.reconnectAfterMs he optional function that returns the millsec reconnect interval. Defaults to stepped backoff off.
@@ -2491,15 +2565,16 @@ class RealtimeClient {
         var _a;
         this.accessTokenValue = null;
         this.apiKey = null;
-        this.channels = [];
+        this.channels = new Array();
         this.endPoint = '';
         this.httpEndpoint = '';
         this.headers = (0, _constants.DEFAULT_HEADERS);
         this.params = {};
         this.timeout = (0, _constants.DEFAULT_TIMEOUT);
-        this.heartbeatIntervalMs = 30000;
+        this.heartbeatIntervalMs = 25000;
         this.heartbeatTimer = undefined;
         this.pendingHeartbeatRef = null;
+        this.heartbeatCallback = noop;
         this.ref = 0;
         this.logger = noop;
         this.conn = null;
@@ -2531,6 +2606,12 @@ class RealtimeClient {
         if (options === null || options === void 0 ? void 0 : options.headers) this.headers = Object.assign(Object.assign({}, this.headers), options.headers);
         if (options === null || options === void 0 ? void 0 : options.timeout) this.timeout = options.timeout;
         if (options === null || options === void 0 ? void 0 : options.logger) this.logger = options.logger;
+        if ((options === null || options === void 0 ? void 0 : options.logLevel) || (options === null || options === void 0 ? void 0 : options.log_level)) {
+            this.logLevel = options.logLevel || options.log_level;
+            this.params = Object.assign(Object.assign({}, this.params), {
+                log_level: this.logLevel
+            });
+        }
         if (options === null || options === void 0 ? void 0 : options.heartbeatIntervalMs) this.heartbeatIntervalMs = options.heartbeatIntervalMs;
         const accessTokenValue = (_a = options === null || options === void 0 ? void 0 : options.params) === null || _a === void 0 ? void 0 : _a.apikey;
         if (accessTokenValue) {
@@ -2565,14 +2646,14 @@ class RealtimeClient {
      * Connects the socket, unless already connected.
      */ connect() {
         if (this.conn) return;
+        if (!this.transport) this.transport = (0, _webSocketDefault.default);
         if (this.transport) {
-            this.conn = new this.transport(this.endpointURL(), undefined, {
+            // Detect if using the native browser WebSocket
+            const isBrowser = typeof window !== 'undefined' && this.transport === window.WebSocket;
+            if (isBrowser) this.conn = new this.transport(this.endpointURL());
+            else this.conn = new this.transport(this.endpointURL(), undefined, {
                 headers: this.headers
             });
-            return;
-        }
-        if (NATIVE_WEBSOCKET_AVAILABLE) {
-            this.conn = new WebSocket(this.endpointURL());
             this.setupConnection();
             return;
         }
@@ -2580,12 +2661,6 @@ class RealtimeClient {
             close: ()=>{
                 this.conn = null;
             }
-        });
-        require("c4dfe9bfdd39a2b7").then(({ default: WS })=>{
-            this.conn = new WS(this.endpointURL(), undefined, {
-                headers: this.headers
-            });
-            this.setupConnection();
         });
     }
     /**
@@ -2610,6 +2685,7 @@ class RealtimeClient {
             // remove open handles
             this.heartbeatTimer && clearInterval(this.heartbeatTimer);
             this.reconnectTimer.reset();
+            this.channels.forEach((channel)=>channel.teardown());
         }
     }
     /**
@@ -2622,6 +2698,7 @@ class RealtimeClient {
      * @param channel A RealtimeChannel instance
      */ async removeChannel(channel) {
         const status = await channel.unsubscribe();
+        this.channels = this.channels.filter((c)=>c._joinRef !== channel._joinRef);
         if (this.channels.length === 0) this.disconnect();
         return status;
     }
@@ -2629,6 +2706,7 @@ class RealtimeClient {
      * Unsubscribes and removes all channels
      */ async removeAllChannels() {
         const values_1 = await Promise.all(this.channels.map((channel)=>channel.unsubscribe()));
+        this.channels = [];
         this.disconnect();
         return values_1;
     }
@@ -2661,9 +2739,13 @@ class RealtimeClient {
     channel(topic, params = {
         config: {}
     }) {
-        const chan = new (0, _realtimeChannelDefault.default)(`realtime:${topic}`, params, this);
-        this.channels.push(chan);
-        return chan;
+        const realtimeTopic = `realtime:${topic}`;
+        const exists = this.getChannels().find((c)=>c.topic === realtimeTopic);
+        if (!exists) {
+            const chan = new (0, _realtimeChannelDefault.default)(`realtime:${topic}`, params, this);
+            this.channels.push(chan);
+            return chan;
+        } else return exists;
     }
     /**
      * Push out a message if the socket is connected.
@@ -2691,23 +2773,12 @@ class RealtimeClient {
      * @param token A JWT string to override the token set on the client.
      */ async setAuth(token = null) {
         let tokenToSend = token || this.accessToken && await this.accessToken() || this.accessTokenValue;
-        if (tokenToSend) {
-            let parsed = null;
-            try {
-                parsed = JSON.parse(atob(tokenToSend.split('.')[1]));
-            } catch (_error) {}
-            if (parsed && parsed.exp) {
-                let now = Math.floor(Date.now() / 1000);
-                let valid = now - parsed.exp < 0;
-                if (!valid) {
-                    this.log('auth', `InvalidJWTToken: Invalid value for JWT claim "exp" with value ${parsed.exp}`);
-                    return Promise.reject(`InvalidJWTToken: Invalid value for JWT claim "exp" with value ${parsed.exp}`);
-                }
-            }
+        if (this.accessTokenValue != tokenToSend) {
             this.accessTokenValue = tokenToSend;
             this.channels.forEach((channel)=>{
                 tokenToSend && channel.updateJoinPayload({
-                    access_token: tokenToSend
+                    access_token: tokenToSend,
+                    version: this.headers && this.headers['X-Client-Info']
                 });
                 if (channel.joinedOnce && channel._isJoined()) channel._push((0, _constants.CHANNEL_EVENTS).access_token, {
                     access_token: tokenToSend
@@ -2719,10 +2790,14 @@ class RealtimeClient {
      * Sends a heartbeat message if the socket is connected.
      */ async sendHeartbeat() {
         var _a;
-        if (!this.isConnected()) return;
+        if (!this.isConnected()) {
+            this.heartbeatCallback('disconnected');
+            return;
+        }
         if (this.pendingHeartbeatRef) {
             this.pendingHeartbeatRef = null;
             this.log('transport', 'heartbeat timeout. Attempting to re-establish connection');
+            this.heartbeatCallback('timeout');
             (_a = this.conn) === null || _a === void 0 || _a.close((0, _constants.WS_CLOSE_NORMAL), 'hearbeat timeout');
             return;
         }
@@ -2733,7 +2808,11 @@ class RealtimeClient {
             payload: {},
             ref: this.pendingHeartbeatRef
         });
-        this.setAuth();
+        this.heartbeatCallback('sent');
+        await this.setAuth();
+    }
+    onHeartbeat(callback) {
+        this.heartbeatCallback = callback;
     }
     /**
      * Flushes send buffer
@@ -2771,7 +2850,7 @@ class RealtimeClient {
      *
      * @internal
      */ _remove(channel) {
-        this.channels = this.channels.filter((c)=>c._joinRef() !== channel._joinRef());
+        this.channels = this.channels.filter((c)=>c.topic !== channel.topic);
     }
     /**
      * Sets up connection handlers.
@@ -2789,13 +2868,14 @@ class RealtimeClient {
     /** @internal */ _onConnMessage(rawMessage) {
         this.decode(rawMessage.data, (msg)=>{
             let { topic, event, payload, ref } = msg;
+            if (topic === 'phoenix' && event === 'phx_reply') this.heartbeatCallback(msg.payload.status == 'ok' ? 'ok' : 'error');
             if (ref && ref === this.pendingHeartbeatRef) this.pendingHeartbeatRef = null;
             this.log('receive', `${payload.status || ''} ${topic} ${event} ${ref && '(' + ref + ')' || ''}`, payload);
-            this.channels.filter((channel)=>channel._isMember(topic)).forEach((channel)=>channel._trigger(event, payload, ref));
+            Array.from(this.channels).filter((channel)=>channel._isMember(topic)).forEach((channel)=>channel._trigger(event, payload, ref));
             this.stateChangeCallbacks.message.forEach((callback)=>callback(msg));
         });
     }
-    /** @internal */ async _onConnOpen() {
+    /** @internal */ _onConnOpen() {
         this.log('transport', `connected to ${this.endpointURL()}`);
         this.flushSendBuffer();
         this.reconnectTimer.reset();
@@ -2872,11 +2952,30 @@ class WSWebSocketDummy {
     }
 }
 
-},{"./lib/constants":"796YB","./lib/serializer":"idzjS","./lib/timer":"eNpmT","./lib/transformers":"5iRCm","./RealtimeChannel":"cvNTv","3ea8640035012c43":"krM5B","c4dfe9bfdd39a2b7":"8UPwG","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"796YB":[function(require,module,exports,__globalThis) {
+},{"./WebSocket":"jRZaT","./lib/constants":"796YB","./lib/serializer":"idzjS","./lib/timer":"eNpmT","./lib/transformers":"5iRCm","./RealtimeChannel":"cvNTv","3ea8640035012c43":"krM5B","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"jRZaT":[function(require,module,exports,__globalThis) {
+// Node.js WebSocket entry point
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+let WebSocketImpl;
+if (typeof window === 'undefined') // Node.js environment
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+WebSocketImpl = require("d1b242186eb9c967");
+else // Browser environment
+WebSocketImpl = window.WebSocket;
+exports.default = WebSocketImpl;
+
+},{"d1b242186eb9c967":"d5k8E","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"d5k8E":[function(require,module,exports,__globalThis) {
+'use strict';
+module.exports = function() {
+    throw new Error("ws does not work in the browser. Browser clients must use the native WebSocket object");
+};
+
+},{}],"796YB":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "DEFAULT_HEADERS", ()=>DEFAULT_HEADERS);
 parcelHelpers.export(exports, "VSN", ()=>VSN);
+parcelHelpers.export(exports, "VERSION", ()=>VERSION);
 parcelHelpers.export(exports, "DEFAULT_TIMEOUT", ()=>DEFAULT_TIMEOUT);
 parcelHelpers.export(exports, "WS_CLOSE_NORMAL", ()=>WS_CLOSE_NORMAL);
 parcelHelpers.export(exports, "SOCKET_STATES", ()=>SOCKET_STATES);
@@ -2889,6 +2988,7 @@ const DEFAULT_HEADERS = {
     'X-Client-Info': `realtime-js/${(0, _version.version)}`
 };
 const VSN = '1.0.0';
+const VERSION = (0, _version.version);
 const DEFAULT_TIMEOUT = 10000;
 const WS_CLOSE_NORMAL = 1000;
 var SOCKET_STATES;
@@ -2931,7 +3031,7 @@ var CONNECTION_STATE;
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "version", ()=>version);
-const version = '2.11.2';
+const version = '2.11.10';
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"idzjS":[function(require,module,exports,__globalThis) {
 // This file draws heavily from https://github.com/phoenixframework/phoenix/commit/cf098e9cf7a44ee6479d31d911a97d3c7430c6fe
@@ -3303,6 +3403,7 @@ class RealtimeChannel {
                         }));
                         else {
                             this.unsubscribe();
+                            this.state = (0, _constants.CHANNEL_STATES).errored;
                             callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, new Error('mismatch between server and client bindings for postgres changes'));
                             return;
                         }
@@ -3312,6 +3413,7 @@ class RealtimeChannel {
                     return;
                 }
             }).receive('error', (error)=>{
+                this.state = (0, _constants.CHANNEL_STATES).errored;
                 callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, new Error(JSON.stringify(Object.values(error).join(', ') || 'error')));
                 return;
             }).receive('timeout', ()=>{
@@ -3405,8 +3507,6 @@ class RealtimeChannel {
             this.socket.log('channel', `leave ${this.topic}`);
             this._trigger((0, _constants.CHANNEL_EVENTS).close, 'leave', this._joinRef());
         };
-        this.rejoinTimer.reset();
-        // Destroy joinPush to avoid connection timeouts during unscription phase
         this.joinPush.destroy();
         return new Promise((resolve)=>{
             const leavePush = new (0, _pushDefault.default)(this, (0, _constants.CHANNEL_EVENTS).leave, {}, timeout);
@@ -3422,6 +3522,15 @@ class RealtimeChannel {
             leavePush.send();
             if (!this._canPush()) leavePush.trigger('ok', {});
         });
+    }
+    /**
+     * Teardown the channel.
+     *
+     * Destroys and stops related timers.
+     */ teardown() {
+        this.pushBuffer.forEach((push)=>push.destroy());
+        this.rejoinTimer && clearTimeout(this.rejoinTimer.timer);
+        this.joinPush.destroy();
     }
     /** @internal */ async _fetchWithTimeout(url, options, timeout) {
         const controller = new AbortController();
@@ -3900,10 +4009,7 @@ class RealtimePresence {
 }
 exports.default = RealtimePresence;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"8UPwG":[function(require,module,exports,__globalThis) {
-module.exports = import("./browser.56cbbe2e.js").then(()=>module.bundle.root('d5k8E'));
-
-},{"d5k8E":"d5k8E"}],"26jJj":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"26jJj":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "StorageClient", ()=>(0, _storageClient.StorageClient));
@@ -6586,7 +6692,7 @@ const DEFAULT_REALTIME_OPTIONS = {};
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "version", ()=>version);
-const version = '2.49.8';
+const version = '2.50.0';
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"irSmw":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -6732,6 +6838,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "navigatorLock", ()=>(0, _locks.navigatorLock));
 parcelHelpers.export(exports, "NavigatorLockAcquireTimeoutError", ()=>(0, _locks.NavigatorLockAcquireTimeoutError));
 parcelHelpers.export(exports, "lockInternals", ()=>(0, _locks.internals));
+parcelHelpers.export(exports, "processLock", ()=>(0, _locks.processLock));
 parcelHelpers.export(exports, "GoTrueAdminApi", ()=>(0, _goTrueAdminApiDefault.default));
 parcelHelpers.export(exports, "GoTrueClient", ()=>(0, _goTrueClientDefault.default));
 parcelHelpers.export(exports, "AuthAdminApi", ()=>(0, _authAdminApiDefault.default));
@@ -6755,6 +6862,7 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _fetch = require("./lib/fetch");
 var _helpers = require("./lib/helpers");
+var _types = require("./lib/types");
 var _errors = require("./lib/errors");
 var __rest = undefined && undefined.__rest || function(s, e) {
     var t = {};
@@ -6778,7 +6886,8 @@ class GoTrueAdminApi {
      * Removes a logged-in session.
      * @param jwt A valid, logged-in JWT.
      * @param scope The logout sope.
-     */ async signOut(jwt, scope = 'global') {
+     */ async signOut(jwt, scope = (0, _types.SIGN_OUT_SCOPES)[0]) {
+        if ((0, _types.SIGN_OUT_SCOPES).indexOf(scope) < 0) throw new Error(`@supabase/auth-js: Parameter scope must be one of ${(0, _types.SIGN_OUT_SCOPES).join(', ')}`);
         try {
             await (0, _fetch._request)(this.fetch, 'POST', `${this.url}/logout?scope=${scope}`, {
                 headers: this.headers,
@@ -6932,6 +7041,7 @@ class GoTrueAdminApi {
      *
      * This function should only be called on a server. Never expose your `service_role` key in the browser.
      */ async getUserById(uid) {
+        (0, _helpers.validateUUID)(uid);
         try {
             return await (0, _fetch._request)(this.fetch, 'GET', `${this.url}/admin/users/${uid}`, {
                 headers: this.headers,
@@ -6954,6 +7064,7 @@ class GoTrueAdminApi {
      *
      * This function should only be called on a server. Never expose your `service_role` key in the browser.
      */ async updateUserById(uid, attributes) {
+        (0, _helpers.validateUUID)(uid);
         try {
             return await (0, _fetch._request)(this.fetch, 'PUT', `${this.url}/admin/users/${uid}`, {
                 body: attributes,
@@ -6979,6 +7090,7 @@ class GoTrueAdminApi {
      *
      * This function should only be called on a server. Never expose your `service_role` key in the browser.
      */ async deleteUser(id, shouldSoftDelete = false) {
+        (0, _helpers.validateUUID)(id);
         try {
             return await (0, _fetch._request)(this.fetch, 'DELETE', `${this.url}/admin/users/${id}`, {
                 headers: this.headers,
@@ -6998,6 +7110,7 @@ class GoTrueAdminApi {
         }
     }
     async _listFactors(params) {
+        (0, _helpers.validateUUID)(params.userId);
         try {
             const { data, error } = await (0, _fetch._request)(this.fetch, 'GET', `${this.url}/admin/users/${params.userId}/factors`, {
                 headers: this.headers,
@@ -7023,6 +7136,8 @@ class GoTrueAdminApi {
         }
     }
     async _deleteFactor(params) {
+        (0, _helpers.validateUUID)(params.userId);
+        (0, _helpers.validateUUID)(params.id);
         try {
             const data = await (0, _fetch._request)(this.fetch, 'DELETE', `${this.url}/admin/users/${params.userId}/factors/${params.id}`, {
                 headers: this.headers
@@ -7042,7 +7157,7 @@ class GoTrueAdminApi {
 }
 exports.default = GoTrueAdminApi;
 
-},{"./lib/fetch":"1ErFc","./lib/helpers":"kMvBp","./lib/errors":"ecipS","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"1ErFc":[function(require,module,exports,__globalThis) {
+},{"./lib/fetch":"1ErFc","./lib/helpers":"kMvBp","./lib/types":"5MUvz","./lib/errors":"ecipS","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"1ErFc":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "handleError", ()=>handleError);
@@ -7257,7 +7372,7 @@ const JWKS_TTL = 600000; // 10 minutes
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "version", ()=>version);
-const version = '2.69.1';
+const version = '2.70.0';
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"kMvBp":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -7295,6 +7410,7 @@ parcelHelpers.export(exports, "getCodeChallengeAndMethod", ()=>getCodeChallengeA
 parcelHelpers.export(exports, "parseResponseAPIVersion", ()=>parseResponseAPIVersion);
 parcelHelpers.export(exports, "validateExp", ()=>validateExp);
 parcelHelpers.export(exports, "getAlgorithm", ()=>getAlgorithm);
+parcelHelpers.export(exports, "validateUUID", ()=>validateUUID);
 var _constants = require("./constants");
 var _errors = require("./errors");
 var _base64Url = require("./base64url");
@@ -7512,6 +7628,10 @@ function getAlgorithm(alg) {
             throw new Error('Invalid alg claim');
     }
 }
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+function validateUUID(str) {
+    if (!UUID_REGEX.test(str)) throw new Error('@supabase/auth-js: Expected parameter to be UUID but is not');
+}
 
 },{"./constants":"6UTSL","./errors":"ecipS","./base64url":"anWQN","b14de0e012a619af":"krM5B","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"ecipS":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -7710,6 +7830,7 @@ parcelHelpers.defineInteropFlag(exports);
  * Helper functions to convert different types of strings to Uint8Array
  */ parcelHelpers.export(exports, "base64UrlToUint8Array", ()=>base64UrlToUint8Array);
 parcelHelpers.export(exports, "stringToUint8Array", ()=>stringToUint8Array);
+parcelHelpers.export(exports, "bytesToBase64URL", ()=>bytesToBase64URL);
 const TO_BASE64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'.split('');
 /**
  * An array of characters that can appear in a Base64-URL encoded string but
@@ -7869,6 +7990,30 @@ function stringToUint8Array(str) {
     stringToUTF8(str, (byte)=>result.push(byte));
     return new Uint8Array(result);
 }
+function bytesToBase64URL(bytes) {
+    const result = [];
+    const state = {
+        queue: 0,
+        queuedBits: 0
+    };
+    const onChar = (char)=>{
+        result.push(char);
+    };
+    bytes.forEach((byte)=>byteToBase64URL(byte, state, onChar));
+    // always call with `null` after processing all bytes
+    byteToBase64URL(null, state, onChar);
+    return result.join('');
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"5MUvz":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "SIGN_OUT_SCOPES", ()=>SIGN_OUT_SCOPES);
+const SIGN_OUT_SCOPES = [
+    'global',
+    'local',
+    'others'
+];
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"gnygt":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -8289,6 +8434,134 @@ class GoTrueClient {
         return this._acquireLock(-1, async ()=>{
             return this._exchangeCodeForSession(authCode);
         });
+    }
+    /**
+     * Signs in a user by verifying a message signed by the user's private key.
+     * Only Solana supported at this time, using the Sign in with Solana standard.
+     */ async signInWithWeb3(credentials) {
+        const { chain } = credentials;
+        if (chain === 'solana') return await this.signInWithSolana(credentials);
+        throw new Error(`@supabase/auth-js: Unsupported chain "${chain}"`);
+    }
+    async signInWithSolana(credentials) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        let message;
+        let signature;
+        if ('message' in credentials) {
+            message = credentials.message;
+            signature = credentials.signature;
+        } else {
+            const { chain, wallet, statement, options } = credentials;
+            let resolvedWallet;
+            if (!(0, _helpers.isBrowser)()) {
+                if (typeof wallet !== 'object' || !(options === null || options === void 0 ? void 0 : options.url)) throw new Error('@supabase/auth-js: Both wallet and url must be specified in non-browser environments.');
+                resolvedWallet = wallet;
+            } else if (typeof wallet === 'object') resolvedWallet = wallet;
+            else {
+                const windowAny = window;
+                if ('solana' in windowAny && typeof windowAny.solana === 'object' && ('signIn' in windowAny.solana && typeof windowAny.solana.signIn === 'function' || 'signMessage' in windowAny.solana && typeof windowAny.solana.signMessage === 'function')) resolvedWallet = windowAny.solana;
+                else throw new Error(`@supabase/auth-js: No compatible Solana wallet interface on the window object (window.solana) detected. Make sure the user already has a wallet installed and connected for this app. Prefer passing the wallet interface object directly to signInWithWeb3({ chain: 'solana', wallet: resolvedUserWallet }) instead.`);
+            }
+            const url = new URL((_a = options === null || options === void 0 ? void 0 : options.url) !== null && _a !== void 0 ? _a : window.location.href);
+            if ('signIn' in resolvedWallet && resolvedWallet.signIn) {
+                const output = await resolvedWallet.signIn(Object.assign(Object.assign(Object.assign({
+                    issuedAt: new Date().toISOString()
+                }, options === null || options === void 0 ? void 0 : options.signInWithSolana), {
+                    // non-overridable properties
+                    version: '1',
+                    domain: url.host,
+                    uri: url.href
+                }), statement ? {
+                    statement
+                } : null));
+                let outputToProcess;
+                if (Array.isArray(output) && output[0] && typeof output[0] === 'object') outputToProcess = output[0];
+                else if (output && typeof output === 'object' && 'signedMessage' in output && 'signature' in output) outputToProcess = output;
+                else throw new Error('@supabase/auth-js: Wallet method signIn() returned unrecognized value');
+                if ('signedMessage' in outputToProcess && 'signature' in outputToProcess && (typeof outputToProcess.signedMessage === 'string' || outputToProcess.signedMessage instanceof Uint8Array) && outputToProcess.signature instanceof Uint8Array) {
+                    message = typeof outputToProcess.signedMessage === 'string' ? outputToProcess.signedMessage : new TextDecoder().decode(outputToProcess.signedMessage);
+                    signature = outputToProcess.signature;
+                } else throw new Error('@supabase/auth-js: Wallet method signIn() API returned object without signedMessage and signature fields');
+            } else {
+                if (!('signMessage' in resolvedWallet) || typeof resolvedWallet.signMessage !== 'function' || !('publicKey' in resolvedWallet) || typeof resolvedWallet !== 'object' || !resolvedWallet.publicKey || !('toBase58' in resolvedWallet.publicKey) || typeof resolvedWallet.publicKey.toBase58 !== 'function') throw new Error('@supabase/auth-js: Wallet does not have a compatible signMessage() and publicKey.toBase58() API');
+                message = [
+                    `${url.host} wants you to sign in with your Solana account:`,
+                    resolvedWallet.publicKey.toBase58(),
+                    ...statement ? [
+                        '',
+                        statement,
+                        ''
+                    ] : [
+                        ''
+                    ],
+                    'Version: 1',
+                    `URI: ${url.href}`,
+                    `Issued At: ${(_c = (_b = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _b === void 0 ? void 0 : _b.issuedAt) !== null && _c !== void 0 ? _c : new Date().toISOString()}`,
+                    ...((_d = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _d === void 0 ? void 0 : _d.notBefore) ? [
+                        `Not Before: ${options.signInWithSolana.notBefore}`
+                    ] : [],
+                    ...((_e = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _e === void 0 ? void 0 : _e.expirationTime) ? [
+                        `Expiration Time: ${options.signInWithSolana.expirationTime}`
+                    ] : [],
+                    ...((_f = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _f === void 0 ? void 0 : _f.chainId) ? [
+                        `Chain ID: ${options.signInWithSolana.chainId}`
+                    ] : [],
+                    ...((_g = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _g === void 0 ? void 0 : _g.nonce) ? [
+                        `Nonce: ${options.signInWithSolana.nonce}`
+                    ] : [],
+                    ...((_h = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _h === void 0 ? void 0 : _h.requestId) ? [
+                        `Request ID: ${options.signInWithSolana.requestId}`
+                    ] : [],
+                    ...((_k = (_j = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _j === void 0 ? void 0 : _j.resources) === null || _k === void 0 ? void 0 : _k.length) ? [
+                        'Resources',
+                        ...options.signInWithSolana.resources.map((resource)=>`- ${resource}`)
+                    ] : []
+                ].join('\n');
+                const maybeSignature = await resolvedWallet.signMessage(new TextEncoder().encode(message), 'utf8');
+                if (!maybeSignature || !(maybeSignature instanceof Uint8Array)) throw new Error('@supabase/auth-js: Wallet signMessage() API returned an recognized value');
+                signature = maybeSignature;
+            }
+        }
+        try {
+            const { data, error } = await (0, _fetch._request)(this.fetch, 'POST', `${this.url}/token?grant_type=web3`, {
+                headers: this.headers,
+                body: Object.assign({
+                    chain: 'solana',
+                    message,
+                    signature: (0, _base64Url.bytesToBase64URL)(signature)
+                }, ((_l = credentials.options) === null || _l === void 0 ? void 0 : _l.captchaToken) ? {
+                    gotrue_meta_security: {
+                        captcha_token: (_m = credentials.options) === null || _m === void 0 ? void 0 : _m.captchaToken
+                    }
+                } : null),
+                xform: (0, _fetch._sessionResponse)
+            });
+            if (error) throw error;
+            if (!data || !data.session || !data.user) return {
+                data: {
+                    user: null,
+                    session: null
+                },
+                error: new (0, _errors.AuthInvalidTokenResponseError)()
+            };
+            if (data.session) {
+                await this._saveSession(data.session);
+                await this._notifyAllSubscribers('SIGNED_IN', data.session);
+            }
+            return {
+                data: Object.assign({}, data),
+                error
+            };
+        } catch (error) {
+            if ((0, _errors.isAuthError)(error)) return {
+                data: {
+                    user: null,
+                    session: null
+                },
+                error
+            };
+            throw error;
+        }
     }
     async _exchangeCodeForSession(authCode) {
         const storageItem = await (0, _helpers.getItemAsync)(this.storage, `${this.storageKey}-code-verifier`);
@@ -10234,11 +10507,7 @@ var _goTrueClientDefault = parcelHelpers.interopDefault(_goTrueClient);
 const AuthClient = (0, _goTrueClientDefault.default);
 exports.default = AuthClient;
 
-},{"./GoTrueClient":"gnygt","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"5MUvz":[function(require,module,exports,__globalThis) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"bMlgX":[function(require,module,exports,__globalThis) {
+},{"./GoTrueClient":"gnygt","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"bMlgX":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "getPreview", ()=>getPreview);
@@ -10256,6 +10525,6 @@ async function getPreview(url) {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}]},["kc49x","fILKw"], "fILKw", "parcelRequire893f", {})
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}]},["iUuJv","fILKw"], "fILKw", "parcelRequire893f", {})
 
 //# sourceMappingURL=public.1fcc916e.js.map

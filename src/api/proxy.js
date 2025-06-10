@@ -1,9 +1,28 @@
-const proxyUrl = `https://your-vercel-app.vercel.app/api/proxy?url=${encodeURIComponent(imageUrl)}`;
+// proxy.js
+import express from "express";
+import fetch from "node-fetch";
 
-fetch(proxyUrl)
-  .then(response => response.blob())
-  .then(blob => {
-    const imageUrl = URL.createObjectURL(blob);
-    document.getElementById("image").src = imageUrl;
-  })
-  .catch(error => console.error("画像の取得に失敗:", error));
+const app = express();
+const PORT = 3001;
+
+app.get("/proxy", async (req, res) => {
+  const { url } = req.query;
+  if (!url) {
+    return res.status(400).send("URLが指定されていません");
+  }
+
+  try {
+    const response = await fetch(url);
+    const contentType = response.headers.get("content-type");
+    res.setHeader("Content-Type", contentType);
+    const buffer = await response.arrayBuffer();
+    res.send(Buffer.from(buffer));
+  } catch (err) {
+    console.error("画像取得エラー:", err);
+    res.status(500).send("画像取得に失敗しました");
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ 画像プロキシサーバー起動: http://localhost:${PORT}`);
+});

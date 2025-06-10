@@ -6,6 +6,11 @@ body {
   font-family: Inter, sans-serif;
 }
 
+#thumbnail {
+  margin-top: 20px;
+  display: none;
+}
+
 form {
   background: #fff;
   border-radius: 12px;

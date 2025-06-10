@@ -1,22 +1,28 @@
-<!DOCTYPE html><html lang=ja><meta charset=UTF-8><meta name=viewport content="width=device-width, initial-scale=1.0"><title>URLと画像の登録</title><link rel=stylesheet href=/public.47937bfd.css><body>
+<!DOCTYPE html><html lang="ja"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URLと画像の登録</title>
+  <link rel="stylesheet" href="/public.b04d9f11.css">
+</head>
+<body>
   <h1>URLと画像の登録</h1>
   
-  
-  <form id=urlForm>
-    <input id=urlInput placeholder=URLを入力 required>
-    <input id=titleInput placeholder=タイトルを入力 required>
-    <input id=categoryInput placeholder=カテゴリを入力 required>
-   
-    <button>登録</button>
+  <!-- URL登録フォーム -->
+  <form id="urlForm">
+    <input type="text" id="urlInput" placeholder="URLを入力" required="">
+    <input type="text" id="titleInput" placeholder="タイトルを入力" required="">
+    <input type="text" id="categoryInput" placeholder="カテゴリを入力" required="">
+    <button type="submit">登録</button>
   </form>
   
-  <br>
-  
-  <img id=thumbnail src=https://placehold.co/100x100 alt=サムネイル>
-  
-  <br><br>
-  
-  <ul id=urlList></ul>
-  
-  <script type=module src=/public.031d9d42.js></script>
+  <!-- 登録直後のプレビュー -->
+  <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300">
 
+  <!-- 一覧表示エリア -->
+  <ul id="urlList"></ul>
+
+  <!-- ここが肝：Parcel で束ねた main.js を同じディレクトリから読み込む -->
+  <script type="module" src="/public.1fcc916e.js" defer=""></script>
+
+
+</body></html>
