@@ -13,7 +13,7 @@
     "parcel": "^2.15.2"
   },
   "scripts": {
-   "postinstall": "",
+  "postinstall": "npm rebuild parcel",
   "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
 }
 
