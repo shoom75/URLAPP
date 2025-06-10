@@ -54,16 +54,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       link.style.textDecoration = "none";
 
       // 削除ボタン
-      const btnDelete = document.createElement("button");
-      btnDelete.innerText = "削除";
-      btnDelete.style.marginLeft = "auto";
-      btnDelete.style.border = "none";
-      btnDelete.style.background = "#f8d7da";
-      btnDelete.style.color = "#721c24";
-      btnDelete.style.padding = "6px 10px";
-      btnDelete.style.borderRadius = "4px";
-      btnDelete.style.cursor = "pointer";
-      btnDelete.style.fontSize = "14px";
+     const btnDelete = document.createElement("button");
+btnDelete.innerText = "削除";
+btnDelete.classList.add("btn-delete");
+
+
 
       btnDelete.onclick = async () => {
         if (!confirm(`「${title}」を削除しますか？`)) return;

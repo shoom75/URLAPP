@@ -713,14 +713,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
             // 削除ボタン
             const btnDelete = document.createElement("button");
             btnDelete.innerText = "\u524A\u9664";
-            btnDelete.style.marginLeft = "auto";
-            btnDelete.style.border = "none";
-            btnDelete.style.background = "#f8d7da";
-            btnDelete.style.color = "#721c24";
-            btnDelete.style.padding = "6px 10px";
-            btnDelete.style.borderRadius = "4px";
-            btnDelete.style.cursor = "pointer";
-            btnDelete.style.fontSize = "14px";
+            btnDelete.classList.add("btn-delete");
             btnDelete.onclick = async ()=>{
                 if (!confirm(`\u{300C}${title}\u{300D}\u{3092}\u{524A}\u{9664}\u{3057}\u{307E}\u{3059}\u{304B}\u{FF1F}`)) return;
                 const { success, error } = await (0, _dbOperationsJs.deleteUrl)(id);
@@ -818,37 +811,7 @@ async function deleteUrl(id) {
     };
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT","./supabaseClient.js":"e1e2Y"}],"jnFvT":[function(require,module,exports,__globalThis) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, '__esModule', {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"e1e2Y":[function(require,module,exports,__globalThis) {
+},{"./supabaseClient.js":"e1e2Y","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"e1e2Y":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "supabase", ()=>supabase);
@@ -1258,7 +1221,37 @@ const resolveFetch = (customFetch)=>{
 },{"db8a7a5aa4509164":"krM5B","@parcel/transformer-js/src/esmodule-helpers.js":"jnFvT"}],"krM5B":[function(require,module,exports,__globalThis) {
 module.exports = Promise.resolve(module.bundle.root("eMBzZ"));
 
-},{"eMBzZ":"eMBzZ"}],"2u4bB":[function(require,module,exports,__globalThis) {
+},{"eMBzZ":"eMBzZ"}],"jnFvT":[function(require,module,exports,__globalThis) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, '__esModule', {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"2u4bB":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "FunctionsError", ()=>FunctionsError);

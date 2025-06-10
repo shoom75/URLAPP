@@ -6,9 +6,13 @@ body {
     margin: 0;
     padding: 40px;
 }
+
+/* 👁 プレビュー画像（一時表示） */
 #thumbnail {
-  display: none;
-  margin-top: 20px;
+    display: none;
+    margin-top: 20px;
+    max-width: 300px;
+    border-radius: 6px;
 }
 
 /* 📄 フォーム */
@@ -41,7 +45,7 @@ input:focus {
     box-shadow: 0px 0px 8px rgba(228, 115, 80, 0.3);
 }
 
-/* 🔥 ボタン */
+/* ✅ 通常ボタン（登録） */
 button {
     padding: 12px 20px;
     background: linear-gradient(135deg, #F4C06C, #E9A36A);
@@ -59,21 +63,52 @@ button:hover {
     transform: scale(1.05);
 }
 
+/* 🗑 削除ボタン */
+.btn-delete {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #F08080, #E76F51);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #E76F51, #D65F51);
+    transform: scale(1.05);
+}
+
 /* 📜 リストアイテム */
 li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     background: white;
     border-radius: 10px;
     padding: 15px;
-    margin: 12px 0;
+    margin: 12px auto;
     width: 80%;
     max-width: 500px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 🔗 リンク */
+/* 🖼 画像 */
+li img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* 🔗 タイトルリンク */
 li a {
+    flex: 1;
     color: #E76F51;
     font-weight: bold;
+    font-size: 16px;
     text-decoration: none;
     transition: color 0.3s ease-in-out;
 }
@@ -96,5 +131,17 @@ li a:hover {
 
     li {
         width: 90%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    li a {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .btn-delete {
+        align-self: flex-end;
+        margin-top: 8px;
     }
 }
