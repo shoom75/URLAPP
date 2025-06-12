@@ -1,21 +1,28 @@
-<!DOCTYPE html><html lang=ja><meta charset=UTF-8><meta name=viewport content="width=device-width, initial-scale=1.0"><title>グルメURL管理アプリ</title><link rel=stylesheet href=/public.e26b0583.css><body>
+<!DOCTYPE html><html lang="ja"><head><script type="importmap">{"imports":{"jZEIO":"/browser-ponyfill.5e413953.js"}}</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>グルメURL管理アプリ</title>
+  <link rel="stylesheet" href="/public.b04d9f11.css">
+</head>
+<body>
   <h1>URL管理</h1>
   
-  
-  <form id=urlForm>
-    <input id=urlInput placeholder=URLを入力 required>
-    <input id=titleInput placeholder=タイトルを入力 required>
-    <input id=categoryInput placeholder=カテゴリを入力 required>
-    <button>登録</button>
+  <!-- URL登録フォーム -->
+  <form id="urlForm">
+    <input type="text" id="urlInput" placeholder="URLを入力" required="">
+    <input type="text" id="titleInput" placeholder="タイトルを入力" required="">
+    <input type="text" id="categoryInput" placeholder="カテゴリを入力" required="">
+    <button type="submit">登録</button>
   </form>
   
-  
-  <img id=thumbnail src=https://placehold.co/100x100 alt=サムネイル>
+  <!-- 登録直後のプレビュー -->
+  <img id="thumbnail" src="https://placehold.co/100x100" alt="サムネイル" width="300">
 
-  
-  <ul id=urlList></ul>
+  <!-- 一覧表示エリア -->
+  <ul id="urlList"></ul>
 
-  
-  <script type=module src=/public.2f3a3739.js defer></script>
+  <!-- ここが肝：Parcel で束ねた main.js を同じディレクトリから読み込む -->
+  <script type="module" src="/public.1fcc916e.js" defer=""></script>
 
 
+</body></html>

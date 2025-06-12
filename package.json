@@ -4,7 +4,7 @@
   "description": "Instagram/YouTube URL管理アプリ",
   "type": "module",
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.8",
+    "@supabase/supabase-js": "^1.35.6",
     "express": "^5.1.0",
     "firebase": "^11.8.0",
     "next": "^15.3.3",
