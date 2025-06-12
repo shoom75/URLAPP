@@ -5,8 +5,10 @@ import { supabase } from "./utils/supabaseClient.js";
 console.log("✅ main.js loaded");
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // 🔹 認証ユーザー取得（仮に未ログインならテスト用ID）
-  const session = supabase.auth.session; // 修正: v1では `getSession()` は不要
+  // 認証ユーザー取得（仮に未ログインならテスト用ID）
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const userId = session?.user?.id || "user_123";
 
@@ -52,9 +54,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       link.style.textDecoration = "none";
 
       // 削除ボタン
-      const btnDelete = document.createElement("button");
-      btnDelete.innerText = "削除";
-      btnDelete.classList.add("btn-delete");
+     const btnDelete = document.createElement("button");
+btnDelete.innerText = "削除";
+btnDelete.classList.add("btn-delete");
+
+
 
       btnDelete.onclick = async () => {
         if (!confirm(`「${title}」を削除しますか？`)) return;
