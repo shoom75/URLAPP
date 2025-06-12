@@ -20,6 +20,6 @@
     "build": "npx parcel build src/public/index.html --dist-dir dist --no-cache"
   },
   "browser": {
-    "./node_modules/@supabase/realtime-js/dist/module/WebSocket": false
-  }
+  "./node_modules/@supabase/realtime-js/dist/module/RealtimeSubscription": false
+}
 }
